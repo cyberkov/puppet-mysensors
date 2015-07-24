@@ -1,41 +1,75 @@
 # == Class: mysensors
 #
-# Full description of class mysensors here.
+# This class installs the MySensors Raspberry Pi Gateway
+# The code is checked out from https://github.com/mysensors/Raspberry
 #
 # === Parameters
 #
 # Document parameters here.
 #
-# [*sample_parameter*]
-#   Explanation of what this parameter affects and what it defaults to.
-#   e.g. "Specify one or more upstream ntp servers as an array."
+# [*install_mqttgw*]
+#   Installs the MQTT Gateway as well. If the variable is set to false it'll
+#   just install the SerialGateway
 #
 # === Variables
 #
-# Here you should define a list of variables that this module would require.
-#
-# [*sample_variable*]
-#   Explanation of how this variable affects the funtion of this class and if
-#   it has a default. e.g. "The parameter enc_ntp_servers must be set by the
-#   External Node Classifier as a comma separated list of hostnames." (Note,
-#   global variables should be avoided in favor of class parameters as
-#   of Puppet 2.6.)
 #
 # === Examples
 #
-#  class { 'mysensors':
-#    servers => [ 'pool.ntp.org', 'ntp.local.company.com' ],
-#  }
+#  class { 'mysensors': }
 #
 # === Authors
 #
-# Author Name <author@domain.com>
+# Hannes Schaller <admin@cyberkov.at>
 #
 # === Copyright
 #
-# Copyright 2015 Your name here, unless otherwise noted.
+# Copyright 2015 Hannes Schaller, unless otherwise noted.
 #
-class mysensors {
+class mysensors (
+  $install_mqttgw = true
+) {
+  vcsrepo { '/opt/mysensors_rpi':
+    ensure   => latest,
+    provider => git,
+    source   => 'https://github.com/mysensors/Raspberry.git',
+    notify   => Exec['librf24-bcm-make-all'],
+  }
+
+  exec { 'librf24-bcm-make-all':
+    command     => 'make all',
+    cwd         => '/opt/mysensors_rpi/librf24-bcm',
+    refreshonly => true,
+    notify      => Exec['librf24-bcm-make-install'],
+  }
+  exec { 'librf24-bcm-make-install':
+    command     => 'make install',
+    cwd         => '/opt/mysensors_rpi/librf24-bcm',
+    refreshonly => true,
+    notify      => Exec['mysensors-make-all'],
+  }
+
+  exec { 'mysensors-make-all':
+    command => 'make all',
+    cwd     => '/opt/mysensors_rpi',
+    notify  => Exec['mysensors-make-install'],
+    creates => '/opt/mysensors_rpi/PiGatewaySerial',
+  }
+  exec { 'mysensors-make-install':
+    command => 'make install',
+    cwd     => '/opt/mysensors_rpi',
+    creates => '/etc/init.d/PiGatewaySerial',
+  }
+
+  service { 'PiGatewaySerial':
+    ensure  => 'running',
+    enable  => true,
+    require => Exec['mysensors-make-install'],
+  }
+
+  if $install_mqttgw {
+    class { '::mysensors::mqttgw': }
+  }
 
 
 }

@@ -1,0 +1,16 @@
+[Unit]
+Description=Starts and stops MySensors MQTT Gateway
+Documentation=http://www.mysensors.org
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/etc/mysensors
+ExecStart=/usr/local/sbin/mqttGateway2.pl
+# Shutdown delay in seconds, before process is tried to be killed with KILL (if configured)
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target
