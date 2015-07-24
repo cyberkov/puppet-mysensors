@@ -1,0 +1,14 @@
+{
+  "name": "cyberkov-mysensors",
+  "version": "0.1.0",
+  "author": "cyberkov",
+  "summary": "Installs the MySensors Gateway on a Raspberry Pi",
+  "license": "Apache 2.0",
+  "source": "https://github.com/cyberkov/puppet-mysensors",
+  "project_page": "https://github.com/cyberkov/puppet-mysensors",
+  "issues_url": "https://github.com/cyberkov/puppet-mysensors/issues",
+  "dependencies": [
+    {"name":"puppetlabs-stdlib","version_requirement":">= 1.0.0"}
+  ]
+}
+
