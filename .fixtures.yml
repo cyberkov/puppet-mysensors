@@ -3,6 +3,7 @@ fixtures:
   forge_modules:
     vcsrepo: "puppetlabs/vcsrepo"
     stdlib: "puppetlabs/stdlib"
+    git: "puppetlabs/git"
     cpan: "meltwater/cpan"
   symlinks:
     mysensors: "#{source_dir}"

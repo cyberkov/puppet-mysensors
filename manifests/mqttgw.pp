@@ -26,22 +26,34 @@ class mysensors::mqttgw {
     group  => 'root'
   }
 
+  include cpan
+
   cpan { $cpan_modules:
     ensure  => present,
     require => Class['::cpan'],
   }
 
-  file { 'mqttGateway2.service':
-    ensure  => present,
-    path    => '/etc/systemd/system/mqttGateway2.service',
-    content => template('mysensors/mqttGateway2.service.erb'),
-    require => File['/usr/local/sbin/mqttGateway2.pl'],
+  if $::systemd {
+    file { 'mqttGateway2.init':
+      ensure  => present,
+      path    => '/etc/systemd/system/mqttGateway2.service',
+      content => template('mysensors/mqttGateway2.service.erb'),
+      require => File['/usr/local/sbin/mqttGateway2.pl'],
+    }
+  } else {
+    file { 'mqttGateway2.init':
+      ensure  => present,
+      path    => '/etc/init.d/mqttGateway2',
+      mode    => '0755',
+      content => template('mysensors/mqttGateway2.init.erb'),
+      require => File['/usr/local/sbin/mqttGateway2.pl'],
+    }
   }
 
   service { 'mqttGateway2':
     ensure  => 'running',
     enable  => true,
-    require => File['mqttGateway2.service'],
+    require => File['mqttGateway2.init'],
   }
 
 }

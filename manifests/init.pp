@@ -11,6 +11,9 @@
 #   Installs the MQTT Gateway as well. If the variable is set to false it'll
 #   just install the SerialGateway
 #
+# [*manage_git*]
+#   Includes the puppetlabs git module since puppetlabs-vcsrepo needs it
+#
 # === Variables
 #
 #
@@ -27,8 +30,24 @@
 # Copyright 2015 Hannes Schaller, unless otherwise noted.
 #
 class mysensors (
-  $install_mqttgw = true
+  $install_mqttgw = true,
+  $manage_git     = true
 ) {
+
+  if $::osfamily != 'Debian' or $::architecture != 'armv7l' {
+    fail("This class is designed for Raspbian/Debian on Arm Architecture.
+    OS reported as ${::osfamily} on ${::architecture}. Sorry.")
+  }
+
+  # Set defaults for exec resource
+  Exec {
+    path => '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+  }
+
+  ensure_packages('build-essential')
+
+  if $manage_git { class {'git': before => Vcsrepo['/opt/mysensors_rpi'] } }
+
   vcsrepo { '/opt/mysensors_rpi':
     ensure   => latest,
     provider => git,
